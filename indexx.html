@@ -1,0 +1,132 @@
+// Este script é para ser executado UMA ÚNICA VEZ no console do navegador
+// para popular o Firestore com os dados dos operadores.
+
+// Certifique-se de que as variáveis __app_id, __firebase_config e __initial_auth_token
+// estejam disponíveis no escopo do seu aplicativo React quando este script for executado.
+
+(async () => {
+    console.log("Iniciando o script de registro de operadores...");
+
+    // Verifica se as variáveis globais do Canvas estão definidas
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+    const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+    const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+    if (Object.keys(firebaseConfig).length === 0) {
+        console.error('Erro: Configuração do Firebase não encontrada. Verifique o ambiente.');
+        return;
+    }
+
+    // Importa as funções do Firebase (garanta que o Firebase SDK esteja carregado na sua página)
+    const { initializeApp } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js");
+    const { getAuth, signInAnonymously, signInWithCustomToken } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js");
+    const { getFirestore, collection, addDoc, query, where, getDocs } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    let userId = null;
+    try {
+        if (initialAuthToken) {
+            const userCredential = await signInWithCustomToken(auth, initialAuthToken);
+            userId = userCredential.user.uid;
+        } else {
+            const userCredential = await signInAnonymously(auth);
+            userId = userCredential.user.uid;
+        }
+        console.log("Autenticação Firebase bem-sucedida. User ID:", userId);
+    } catch (error) {
+        console.error("Erro ao autenticar no Firebase:", error);
+        return;
+    }
+
+    const operatorsData = [
+        { re: '978997', name: 'MARCIA DEISE DE AGUIAR SILVA' },
+        { re: '1353484', name: 'JEILZA SANTOS DO CARMO RESSURREICAO' },
+        { re: '1453283', name: 'JACQUELINE FERREIRA ARRUDA' },
+        { re: '1474889', name: 'TAMARA CRISTINA DOS SANTOS' },
+        { re: '1274383', name: 'ROSELENE DE ARAUJO VIEIRA' },
+        { re: '1336529', name: 'IRAN MIRANDA FERREIRA' },
+        { re: '1353297', name: 'GRASIELE DE JESUS FERREIRA' },
+        { re: '1428751', name: 'SARA ADRIELE COSTA PORTUGAL' },
+        { re: '527777', name: 'MARIA JOSE DE SOUZA' },
+        { re: '1017093', name: 'ELISANGELA AMORIM DA SILVA' },
+        { re: '1470259', name: 'IVANA RIBEIRO SOTO' },
+        { re: '1521342', name: 'ORLENICE CONCEICAO DOS SANTOS' },
+        { re: '1453378', name: 'GESSICA PEREIRA RIBEIRO' },
+        { re: '1482483', name: 'MARIA EDUARDA CERQUEIRA DOS SANTOS' },
+        { re: '1482991', name: 'WILTON JOSE FERNANDES MIRANDA' },
+        { re: '1502985', name: 'MARIA DA CONCEICAO DE MATOS SILVA' },
+        { re: '1521352', name: 'KAYLANE FRANCA DE OLIVEIRA MENEZES SILVA' },
+        { re: '1521371', name: 'JAQUELINE COSTA FIGUEIREDO' },
+        { re: '1366881', name: 'JULIANA MARIA MOMESSO' },
+        { re: '1453467', name: 'SHEILA PRACIDONA QUINTO SILVA' },
+        { re: '1453529', name: 'RHAYANY KAROLINA DE LIMA DANTAS FALCAO' },
+        { re: '1456288', name: 'RAIMUNDO MARCELO CERQUEIRA DE ALMEIDA' },
+        { re: '1474575', name: 'LUCAS LARANJEIRAS DE SOUZA' },
+        { re: '1474666', name: 'SAMIA ALVES ALMEIDA' },
+        { re: '1483965', name: 'TALITA DE ALMEIDA CARVALHO' },
+        { re: '1521341', name: 'LARA FERNANDES DE ARAUJO RAMOS' },
+        { re: '1521359', name: 'BRUNA RIBEIRO SANTOS' },
+        { re: '1453496', name: 'ADRIANA DE OLIVEIRA BORGES' },
+        { re: '1018493', name: 'JACINEIDE MEDEIROS RAMOS ALMEIDA' },
+        { re: '1521356', name: 'VIVIAN MARIA PEREIRA DOS SANTOS DA SILVA' },
+        { re: '1521457', name: 'LETICIA SILVA BARRETO' },
+        { re: '1302334', name: 'ANA LUCIA DE ALMEIDA' },
+        { re: '1170108', name: 'LEANDRA SANTOS DE JESUS' },
+        { re: '1479244', name: 'AFRANIO SOARES SANTANA JUNIOR' },
+        { re: '1521459', name: 'GUILHERME PEREIRA BARRETO' },
+        { re: '1521411', name: 'KAROLANE SANTOS BARBOSA' },
+        { re: '1453482', name: 'JAMILLE GOMES LIMA' },
+        { re: '1483977', name: 'STEPHANIE NEVES FERREIRA' },
+        { re: '1456292', name: 'WHEISLA DEBORAH DE SANTANA SANTOS' },
+        { re: '1521378', name: 'JOSEANE SILVA DE SANTANA BISPO' },
+        { re: '1339290', name: 'MARIA CARINE ALMEIDA SOUZA' },
+        { re: '1380269', name: 'MARIA ELIZANGELA DE AMORIM DIAS' }
+    ];
+
+    const operatorsCollectionRef = collection(db, `artifacts/${appId}/users/${userId}/operators`);
+    let successCount = 0;
+    let existingCount = 0;
+    let errorCount = 0;
+
+    for (const operator of operatorsData) {
+        try {
+            // Verifica se o RE já existe
+            const q = query(operatorsCollectionRef, where('re', '==', operator.re));
+            const querySnapshot = await getDocs(q);
+
+            if (!querySnapshot.empty) {
+                console.log(`Operador com RE ${operator.re} (${operator.name}) já existe. Pulando.`);
+                existingCount++;
+            } else {
+                await addDoc(operatorsCollectionRef, {
+                    re: operator.re,
+                    name: operator.name,
+                    performanceMetrics: {
+                        rechamada: 'N/A',
+                        trfHum: 'N/A',
+                        bottom: 'N/A',
+                        resolutividade: 'N/A',
+                        ura: 'N/A',
+                    },
+                    createdAt: new Date()
+                });
+                console.log(`Operador ${operator.name} (RE: ${operator.re}) cadastrado com sucesso.`);
+                successCount++;
+            }
+        } catch (error) {
+            console.error(`Erro ao cadastrar operador ${operator.re} (${operator.name}):`, error);
+            errorCount++;
+        }
+    }
+
+    console.log(`\n--- Resumo do Cadastro ---`);
+    console.log(`Total de operadores processados: ${operatorsData.length}`);
+    console.log(`Operadores adicionados: ${successCount}`);
+    console.log(`Operadores já existentes: ${existingCount}`);
+    console.log(`Erros encontrados: ${errorCount}`);
+    console.log("Script de registro de operadores concluído.");
+
+})();
