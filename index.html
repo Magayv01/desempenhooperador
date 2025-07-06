@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login - Desempenho do Operador</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="login-container">
+    <h2>Sistema de Desempenho</h2>
+    <form onsubmit="fazerLogin(event)">
+      <label for="re">RE (Usuário):</label>
+      <input type="text" id="re" name="re" required />
+
+      <label for="senha">Senha:</label>
+      <input type="password" id="senha" name="senha" required />
+
+      <button type="submit">Entrar</button>
+
+      <p class="reset-link">
+        <a href="#" onclick="resetarSenha()">Esqueci minha senha</a>
+      </p>
+    </form>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
