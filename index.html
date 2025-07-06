@@ -1,0 +1,152 @@
+import React, { useState } from 'react';
+
+// Main App component
+const App = () => {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [result, setResult] = useState(null);
+  const [message, setMessage] = useState('');
+
+  // Dummy data for demonstration purposes
+  // In a real application, this data would come from an API or database.
+  const operatorData = [
+    {
+      name: 'Grace Kelly Alves da Silva',
+      re: '1234567',
+      indicator: 'Rechamada',
+      percentage: '35%',
+      status: 'Crítico'
+    },
+    {
+      name: 'João Pedro Souza',
+      re: '7654321',
+      indicator: 'Qualidade',
+      percentage: '90%',
+      status: 'Excelente'
+    },
+    {
+      name: 'Maria Fernanda Lima',
+      re: '9876543',
+      indicator: 'Produtividade',
+      percentage: '75%',
+      status: 'Bom'
+    },
+    {
+      name: 'Carlos Alberto Santos',
+      re: '1122334',
+      indicator: 'Rechamada',
+      percentage: '10%',
+      status: 'Satisfatório'
+    },
+    {
+      name: 'Ana Carolina Pereira',
+      re: '5566778',
+      indicator: 'Qualidade',
+      percentage: '60%',
+      status: 'Regular'
+    },
+  ];
+
+  // Function to handle the search logic
+  const handleSearch = () => {
+    setMessage('');
+    setResult(null);
+
+    if (!searchTerm.trim()) {
+      setMessage('Por favor, digite o nome do operador ou RE.');
+      return;
+    }
+
+    // Normalize search term for case-insensitive and whitespace-trimmed comparison
+    const normalizedSearchTerm = searchTerm.trim().toLowerCase();
+
+    // Find operator by name or RE
+    const foundOperator = operatorData.find(operator =>
+      operator.name.toLowerCase().includes(normalizedSearchTerm) ||
+      operator.re === normalizedSearchTerm
+    );
+
+    if (foundOperator) {
+      setResult(foundOperator);
+    } else {
+      setMessage('Operador ou RE não encontrado.');
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4 font-sans">
+      <div className="bg-white p-8 rounded-xl shadow-2xl w-full max-w-md border border-gray-200">
+        <h1 className="text-3xl font-extrabold text-gray-800 mb-6 text-center">
+          Consulta de Desempenho
+        </h1>
+
+        <div className="mb-6">
+          <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-2">
+            Nome do Operador ou RE (7 dígitos):
+          </label>
+          <input
+            type="text"
+            id="search"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition duration-200 ease-in-out"
+            placeholder="Ex: Grace Kelly ou 1234567"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            onKeyPress={(e) => {
+              if (e.key === 'Enter') {
+                handleSearch();
+              }
+            }}
+          />
+        </div>
+
+        <button
+          onClick={handleSearch}
+          className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold text-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-200 ease-in-out shadow-md hover:shadow-lg"
+        >
+          Buscar
+        </button>
+
+        {message && (
+          <div className="mt-6 p-3 bg-red-100 text-red-700 rounded-lg text-center font-medium">
+            {message}
+          </div>
+        )}
+
+        {result && (
+          <div className="mt-8 p-6 bg-blue-50 border border-blue-200 rounded-xl shadow-inner">
+            <h2 className="text-xl font-bold text-blue-800 mb-4">Resultado da Busca:</h2>
+            <div className="space-y-2 text-gray-700">
+              <p>
+                <span className="font-semibold">Nome:</span> {result.name}
+              </p>
+              <p>
+                <span className="font-semibold">RE:</span> {result.re}
+              </p>
+              <p>
+                <span className="font-semibold">Indicador:</span> {result.indicator}
+              </p>
+              <p>
+                <span className="font-semibold">Percentual:</span> {result.percentage}
+              </p>
+              <p>
+                <span className="font-semibold">Estado:</span>{' '}
+                <span
+                  className={`font-bold ${
+                    result.status === 'Crítico'
+                      ? 'text-red-600'
+                      : result.status === 'Excelente'
+                      ? 'text-green-600'
+                      : 'text-orange-600'
+                  }`}
+                >
+                  {result.status}
+                </span>
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default App;
